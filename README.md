@@ -83,5 +83,6 @@ export const Modals = ({ children }: { children: ReactNode }) => {
     </ModalsContext.Provider>
   );
 };
-
 ```
+
+https://github.com/user-attachments/assets/a256358d-3443-47bf-8a84-7d19787772c0
