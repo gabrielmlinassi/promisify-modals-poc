@@ -85,4 +85,72 @@ export const Modals = ({ children }: { children: ReactNode }) => {
 };
 ```
 
+You can also promisify each specific Modal without having to rely on a global state like Context example above. You just need to create a hook to handle the modal and apply the same concepts. Example:
+
+```tsx
+import { useCallback, useRef, useState } from "react";
+
+export const useConfirmationModal = () => {
+  const promiseRef = useRef<(value: "confirmed" | "canceled") => void>();
+  const [isOpen, setOpen] = useState(false);
+
+  const open = useCallback(
+    () =>
+      new Promise<"confirmed" | "canceled">((resolve) => {
+        setOpen(true);
+        promiseRef.current = resolve;
+      }),
+    []
+  );
+
+  const onConfirm = useCallback(() => {
+    setOpen(false);
+    if (promiseRef.current) promiseRef.current("confirmed");
+  }, []);
+
+  const onCancel = useCallback(() => {
+    setOpen(false);
+    if (promiseRef.current) promiseRef.current("canceled");
+  }, []);
+
+  const onOpenChange = useCallback((value: boolean) => {
+    //
+  }, []);
+
+  return {
+    open,
+    props: {
+      open: isOpen,
+      onConfirm,
+      onCancel,
+      onOpenChange,
+    },
+  };
+};
+```
+
+Then on your app you pass those props directly to your modal such as:
+
+```tsx
+const ConfirmationModal = dynamic(
+  () => import("@/components/modals/ConfirmationModal"),
+  { ssr: false }
+);
+
+export default function Home() {
+  const confirmationModal = useConfirmationModal();
+
+  return (
+    <>
+      ...
+      {confirmationModal.props.open && (
+        <ConfirmationModal {...confirmationModal.props} />
+      )}
+    </>
+  );
+}
+```
+
+
+
 https://github.com/user-attachments/assets/a256358d-3443-47bf-8a84-7d19787772c0
